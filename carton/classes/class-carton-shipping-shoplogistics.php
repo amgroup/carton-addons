@@ -650,7 +650,7 @@ function shoplogistics_override_fields( $fields, $block_name = 'shipping' ) {
         //$fields[ $block_name . '_' . $field ]['required']   = false;
         unset( $fields[ $block_name . '_' . $field ] );
     }
-//echo "<p>" . $woocommerce->session->shipping_type . "</p>";
+
     if( $woocommerce->session->shipping_type == 'pickup' )
         unset( $fields[ $block_name . '_address_1' ] );
     return $fields;
