@@ -64,6 +64,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
         $this->api_key      = $this->get_option( 'api_key' );
         $this->api_key      = $this->api_key ? $this->api_key : '02d345ff7272162957ac614a1d1a83b5';
 		$this->max_days		= $this->get_option( 'max_days' );
+		$this->max_weight	= $this->get_option( 'max_weight' );
         $this->delivery_correction = $this->get_option( 'delivery_correction' );
 
 		$this->cost_correction	= $this->get_option( 'cost_correction' );
@@ -236,7 +237,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 		if( ! $woocommerce->cart->cart_contents_weight )
 			$woocommerce->cart->cart_contents_weight = 0.5;
                 $subvariants = (array) $this->get_rates( $selected_city[ 'name' ], $package['contents_cost'], $woocommerce->cart->cart_contents_weight );
-                if( sizeof( $subvariants ) ) {
+                if( ! empty( $subvariants ) ) {
 
                     $pickup_place = array();
                     $only_one_variant = 1;
@@ -269,7 +270,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                             
                         // Devlivery cost
                         if( ! $subvariant['comission_percent'] )
-                            $subvariant['comission_percent'] = 1.5;
+                            $subvariant['comission_percent'] = 2;
                         $price = (($subvariant['comission_percent']/100) * $package['contents_cost']) + $subvariant['price'];
                         
                         // Delivery cost correction
@@ -520,7 +521,18 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 				'placeholder'		=> '0',
 				'custom_attributes'	=> array(
 					'min'		=> '0',
-                    'step'      => '1',
+					'step'      => '1',
+				),
+				'desc_tip'		=> true,
+			),
+			'max_weight' => array(
+				'title' 		=> __( 'Max Package Weight', 'woocommerce' ),
+				'type' 			=> 'number',
+				'description'		=> __( 'Max Package Weight. Leave blank or set to 0 if it does not matter.', 'woocommerce' ),
+				'placeholder'		=> '0',
+				'custom_attributes'	=> array(
+					'min'		=> '0',
+					'step'      => '1',
 				),
 				'desc_tip'		=> true,
 			),
@@ -586,7 +598,8 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
     function is_available( $package ) {
 		global $woocommerce;
 
-		if ($this->enabled=="no") return false;
+		if ( $this->enabled=="no" ) return false;
+		if ( $this->max_weight && $woocommerce->cart->cart_contents_weight > $this->max_weight ) return false;
 /*
 		if ($package['contents_cost']>=90000) return false; // Лимит наложенного платежа - 100000 (90000 + 10%)
 		if ($woocommerce->cart->cart_contents_weight>=20) return false; // Лимит веса посылки 20 кг.
