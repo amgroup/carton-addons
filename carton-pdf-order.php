@@ -156,8 +156,13 @@ if( !function_exists( 'html2xml_charachters' ) ) {
         $xml = preg_replace ( '/(&lsquo;)/i', '&#8216;', $xml ); // левая верхняя одинарная кавычка
         $xml = preg_replace ( '/(&rsquo;)/i', '&#8217;', $xml ); // правая верхняя одинарная кавычка
         $xml = preg_replace ( '/(&sbquo;)/i', '&#8218;', $xml ); // правая нижняя одинарная кавычка
-        $xml = preg_replace ( '/(&ldquo;)/i', '&#8220;', $xml ); // кавычка-лапка левая
-        $xml = preg_replace ( '/(&rdquo;)/i', '&#8221;', $xml ); // кавычка-лапка правая верхняя
+#        $xml = preg_replace ( '/(&ldquo;)/i', '&#8220;', $xml ); // кавычка-лапка левая
+#        $xml = preg_replace ( '/(&rdquo;)/i', '&#8221;', $xml ); // кавычка-лапка правая верхняя
+
+        $xml = preg_replace ( '/(&ldquo;)/i', '“', $xml ); // кавычка-лапка левая
+        $xml = preg_replace ( '/(&rdquo;)/i', '”', $xml ); // кавычка-лапка правая верхняя
+
+
         $xml = preg_replace ( '/(&bdquo;)/i', '&#8222;', $xml ); // кавычка-лапка правая нижняя
         $xml = preg_replace ( '/(&larr;)/i', '&#8592;', $xml ); // стрелка влево
         $xml = preg_replace ( '/(&uarr;)/i', '&#8593;', $xml ); // стрелка вверх
