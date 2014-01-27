@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Tinymce for Taxonomy Description Textarea
+Plugin Name: CartOn Tinymce for Taxonomy Description Textarea
 Plugin URI: http://carton-ecommerce.com
 Description: Adds a tinymce editor to the category description and taxonomy description textarea. Disables HTML filtering on it.
 Version: 1.0

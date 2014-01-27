@@ -134,8 +134,8 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 
     function get_pickup_pindex() {
         $pickup_pindex = array();
-        
-        $idx = plugin_dir_path(__FILE__) . '../../shoplogistics-delivery-postcodes.csv';
+
+        $idx = SHOPLOGISTICS_POSTCODES_FILE;
         if( file_exists($idx) ) {
             $lines = file($idx);
             foreach( $lines as $line_num => $line ) {

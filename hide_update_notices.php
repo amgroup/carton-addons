@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Hide Update Notices
+Plugin Name: CartOn Hide Update Notices
 Description: Shows and Hides Update Notices for WP Admin Pannel. Use Activate / Deactivate this plugin.
 Version: 1.0
 Author: Carton TEAM

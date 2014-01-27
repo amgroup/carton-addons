@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Lowercase permalinks
+Plugin Name: CartOn Lowercase permalinks
 Description: A plugin to make lowercase permalinks
 Version: 1.0
 Author: Andrey Guryev

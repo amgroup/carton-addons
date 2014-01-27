@@ -11,6 +11,7 @@ Author URI: http://kidberries.com/
 
 define('PLUGIN_DIR_PATH_SHOPLOGISTICS_DELIVERY',plugin_dir_path(__FILE__));
 define('PLUGIN_DIR_PATH_SHOPLOGISTICS_DELIVERY_CLASSES', PLUGIN_DIR_PATH_SHOPLOGISTICS_DELIVERY . 'carton/classes/');
+define('SHOPLOGISTICS_POSTCODES_FILE', PLUGIN_DIR_PATH_SHOPLOGISTICS_DELIVERY . 'carton/data/shoplogistics-delivery/postcodes.csv');
 
 
 if( !defined( 'PLUGIN_VERSION_SHOPLOGISTICS_DELIVERY' ) )

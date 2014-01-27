@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: Extended SMTP Preferences Plugin
-Description: Extended SMTP Preferences plugin can help you to send emails via SMTP instead of the PHP mail() function.
+Plugin Name: CartOn GMAIL Preferences Plugin
+Description: CartOn GMAIL Preferences plugin can help you to send emails via SMTP instead of the PHP mail() function.
 Version: 1.0
 Author: kidberries.com
 Author URI: http://kidberries.com/
-Text Domain: Extended SMTP Preferences Plugin
+Text Domain: CartOn GMAIL Preferences Plugin
 Domain Path: /lang
 */
 
