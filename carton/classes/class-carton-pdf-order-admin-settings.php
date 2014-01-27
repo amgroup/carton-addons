@@ -46,13 +46,11 @@ if ( ! class_exists( 'Carton_PDF_Order_Settings' ) ) {
 		public function add_order_actions( $order_id ) {
 			?>
 			<li class="wide">
-				<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=carton_order_get&view=pdf&order=' . $order_id ), 'carton_order_get' ); ?>" class="button tips print-preview-button" target="_blank" alt="<?php esc_attr_e( 'View as PDF', 'woocommerce-delivery-notes' ); ?>" data-tip="<?php esc_attr_e( 'View as PDF', $this->tab_name ); ?>">
-					<span><?php _e( 'View as PDF', $this->tab_name ); ?></span>
-					<img src="<?php echo CARTON_PDF_ORDER_URL . 'images/print-invoice.png'; ?>" alt="<?php esc_attr_e( 'View Invoice as PDF', $this->tab_name ); ?>" width="14">
+				<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=carton_order_get&view=pdf&order=' . $order_id ), 'carton_order_get' ); ?>" class="button tips" target="_blank" alt="<?php esc_attr_e( 'View as PDF', 'woocommerce-delivery-notes' ); ?>" data-tip="<?php esc_attr_e( 'View as PDF', $this->tab_name ); ?>">
+					<span><i class="glyphicon glyphicon-eye-open"></i> <?php _e( 'View as PDF', $this->tab_name ); ?></span>
 				</a>
-				<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=carton_order_get&view=pdf&save=save&order=' . $order_id ), 'carton_order_get' ); ?>" class="button tips print-preview-button" alt="<?php esc_attr_e( 'Save as PDF', 'woocommerce-delivery-notes' ); ?>" data-tip="<?php esc_attr_e( 'Save as PDF', 'woocommerce-delivery-notes' ); ?>">
-					<span><?php _e( 'Save as PDF', $this->tab_name ); ?></span>
-					<img src="<?php echo CARTON_PDF_ORDER_URL . 'images/print-delivery-note.png'; ?>" alt="<?php esc_attr_e( 'Save Invoice as PDF', $this->tab_name ); ?>" width="14">
+				<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=carton_order_get&view=pdf&save=save&order=' . $order_id ), 'carton_order_get' ); ?>" class="button tips" alt="<?php esc_attr_e( 'Save as PDF', 'woocommerce-delivery-notes' ); ?>" data-tip="<?php esc_attr_e( 'Save as PDF', 'woocommerce-delivery-notes' ); ?>">
+					<span><i class="glyphicon glyphicon-save"></i> <?php _e( 'Save as PDF', $this->tab_name ); ?></span>
 				</a>
 			</li>
 			<?php
@@ -64,11 +62,11 @@ if ( ! class_exists( 'Carton_PDF_Order_Settings' ) ) {
 		public function add_order_listing_actions( $order ) {
 			?>
 			<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=carton_order_get&view=pdf&order=' . $order->id ), 'carton_order_get' ); ?>" class="button tips print-preview-button" target="_blank" alt="<?php esc_attr_e( 'View as PDF', 'woocommerce-delivery-notes' ); ?>" data-tip="<?php esc_attr_e( 'View as PDF', $this->tab_name ); ?>">
-				<span><?php _e( 'View as PDF', $this->tab_name ); ?></span>
+				<span><i class="glyphicon glyphicon-eye-open"></i> <?php _e( 'View as PDF', $this->tab_name ); ?></span>
 			</a>
 
 			<a href="<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=carton_order_get&view=pdf&save=save&order=' . $order->id ), 'carton_order_get' ); ?>" class="button tips print-preview-button" alt="<?php esc_attr_e( 'Save as PDF', 'woocommerce-delivery-notes' ); ?>" data-tip="<?php esc_attr_e( 'Save as PDF', 'woocommerce-delivery-notes' ); ?>">
-				<span><?php _e( 'Save as PDF', $this->tab_name ); ?></span>
+				<span><i class="glyphicon glyphicon-save"></i> <?php _e( 'Save as PDF', $this->tab_name ); ?></span>
 			</a>
 			<?php
 		}

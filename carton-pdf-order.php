@@ -22,6 +22,9 @@ function append_carton_pdf_order_plugin() {
 add_action('plugins_loaded', 'append_carton_pdf_order_plugin' );
 
 function load_carton_pdf_order_plugin_settings() {
+
+    wp_enqueue_style( 'glyphicons', CARTON_PDF_ORDER_URL . 'css/glyphicons.css');
+
     include_once( CARTON_PDF_ORDER_CLASSES_DIR . 'class-carton-pdf-order-admin-settings.php' );
     $settings = new Carton_PDF_Order_Settings();
 }
