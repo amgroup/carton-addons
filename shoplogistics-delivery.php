@@ -21,6 +21,5 @@ function append_shoplogistics_delivery_shipping_method() {
 		return; // if the parent class is not available, do nothing
 	include_once (PLUGIN_DIR_PATH_SHOPLOGISTICS_DELIVERY_CLASSES . 'class-carton-shipping-shoplogistics.php');
 }
-
-add_action('plugins_loaded', 'append_shoplogistics_delivery_shipping_method', 0);
+add_action( 'plugins_loaded', 'append_shoplogistics_delivery_shipping_method' );
 ?>

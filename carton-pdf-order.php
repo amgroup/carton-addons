@@ -9,20 +9,23 @@ Author URI: #
 */
 
 define( 'CARTON_PDF_ORDER_DIR', plugin_dir_path(__FILE__) );
+define( 'CARTON_PDF_ORDER_URL', plugin_dir_url(__FILE__) );
 define( 'CARTON_PDF_ORDER_CLASSES_DIR', CARTON_PDF_ORDER_DIR . 'carton/classes/' );
 define( 'CARTON_PDF_ORDER_TEMPLATES_DIR', CARTON_PDF_ORDER_DIR . 'carton/templates/xslt/' );
 define( 'CARTON_PDF_ORDER_TMP_DIR', '/tmp/' );
 
 
 function append_carton_pdf_order_plugin() {
-    global $carton;
-
     include_once( CARTON_PDF_ORDER_CLASSES_DIR . 'class-carton-pdf-order.php' );
-
     $pdf = new Carton_PDF_Order();
 }
 add_action('plugins_loaded', 'append_carton_pdf_order_plugin' );
 
+function load_carton_pdf_order_plugin_settings() {
+    include_once( CARTON_PDF_ORDER_CLASSES_DIR . 'class-carton-pdf-order-admin-settings.php' );
+    $settings = new Carton_PDF_Order_Settings();
+}
+add_action( 'admin_init', 'load_carton_pdf_order_plugin_settings' );
 
 // OTHER USEFUL FUNCTIONS
 /*

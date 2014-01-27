@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * @package		WooCommerce/Classes/Shipping
  * @author 		Kidberries
  */
+ 
+
 class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 	/** @var float Stores the cost of shipping */
 	var $shipping_total 			= 0;
@@ -60,12 +62,12 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 		$this->type 		= $this->get_option( 'type' );
 		$this->login 		= $this->get_option( 'login' );
 		$this->password		= $this->get_option( 'password' );
-        $this->customer_key	= $this->get_option( 'customer_key' );
-        $this->api_key      = $this->get_option( 'api_key' );
-        $this->api_key      = $this->api_key ? $this->api_key : '02d345ff7272162957ac614a1d1a83b5';
+		$this->customer_key	= $this->get_option( 'customer_key' );
+		$this->api_key		= $this->get_option( 'api_key' );
+		$this->api_key		= $this->api_key ? $this->api_key : '02d345ff7272162957ac614a1d1a83b5';
 		$this->max_days		= $this->get_option( 'max_days' );
 		$this->max_weight	= $this->get_option( 'max_weight' );
-        $this->delivery_correction = $this->get_option( 'delivery_correction' );
+		$this->delivery_correction = $this->get_option( 'delivery_correction' );
 
 		$this->cost_correction	= $this->get_option( 'cost_correction' );
 		$this->cost_correction_subject = $this->get_option( 'cost_correction_subject' );
@@ -73,13 +75,6 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 
 		$this->pickup_places    = array();
 
-        if( isset( $_POST['shipping_method'] ) )
-            $woocommerce->session->shipping_last_selection_id = $_POST['shipping_method'];
-        if( isset( $_POST['shipping_method_variant'] ) )
-            $woocommerce->session->shipping_last_selection_variant_id = $_POST['shipping_method_variant'];
-        if( isset( $_POST['shipping_method_sub_variant'] ) )
-            $woocommerce->session->shipping_last_selection_sub_variant_id = $_POST['shipping_method_sub_variant'];
-        
 		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
 
 	}
@@ -182,6 +177,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 		$shipping_total_real = 0;
 		$selected_city       = null;
 		$errors              = array();
+        $salt                = '_' . rand(100000,999999);
 
 		$rate = array(
 			'id'          => $this->id,
@@ -215,7 +211,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                     continue;
 
                 $selected = '';
-                if( $woocommerce->session->shipping_last_selection_variant_id == $code ) {
+                if( $woocommerce->session->chosen_shipping_method_variant == $code ) {
 
                     $selected = ' selected="selected"';
                     $selected_city = array(
@@ -227,12 +223,12 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                 $this->pickup_places[] = '<option data-city_id="' . $idx . '" value="' . $code . '"' . $selected . '>' . $name . '</option>';
             }
 
-            $rate[ 'label_extra' ] .=  '<select style="width: 100%" data-placeholder="Ваш город..." id="shipping_city_chzn" name="shipping_method_sub_variant" class="s_city chzn-select shipping_method_variant">' . 
+            $rate[ 'label_extra' ] .=  '<select style="width: 100%" data-placeholder="Ваш город..." id="' . $this->id . $salt . '" name="shipping_method_variant' . $salt . '" class="' . $this->id . ' chosen chzn-select">' .
                                     implode('',$this->pickup_places ) .
                                     '</select>';
         }
 
-        if( $woocommerce->session->shipping_last_selection_variant_id ) {
+        if( $woocommerce->session->chosen_shipping_method_variant ) {
             if( is_array($selected_city) ) {
 		if( ! $woocommerce->cart->cart_contents_weight )
 			$woocommerce->cart->cart_contents_weight = 0.5;
@@ -323,7 +319,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                         }
                         
                         $checked = '';
-                        if( $only_one_variant || $subvariant['pickup_place_code'] == $woocommerce->session->shipping_last_selection_sub_variant_id ) {
+                        if( $only_one_variant || $subvariant['pickup_place_code'] == $woocommerce->session->chosen_shipping_method_sub_variant ) {
                             $checked = ' checked="checked"';
 
                             $woocommerce->session->shipping_type = $type;
@@ -371,7 +367,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                         }
 
                         $pickup_place[] = '<li class="subvariant">' .
-                            '<label class="option"><input class="shipping_method_sub_variant ' . $type . '" type="radio" name="shipping_method_sub_variant" ' .
+                            '<label class="option"><input class="shipping_method_sub_variant ' . $this->id . ' ' . $type . '" type="radio" name="shipping_method_sub_variant' . $salt . '" ' .
                                 'value="' . $subvariant['pickup_place_code'] . '"' . $checked . '>' .
                                 (($discounted_price >0) ? woocommerce_price( $discounted_price ) : 'Бесплатно!') .
                                 '<span class="delivery"> (' . $delivery . ')</span> - '.
@@ -381,8 +377,11 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                         $only_one_variant = null;
                     }
 
-                    if( sizeof($pickup_place) )
-                        $rate[ 'label_extra' ] .= '<br/><ol>' . implode('', $pickup_place ) . '</ol>';
+                    if( sizeof($pickup_place) ) {
+                        $rate[ 'multicost' ] = 8;
+                        $rate[ 'label_extra' ] .= "<br/><ol>" . implode('', $pickup_place ) . "</ol>\n";
+                    }
+
 
                 } else {
                     $errors[] = '';
@@ -394,6 +393,56 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                 }
             }
         }
+		$script = '<script type="text/javascript">
+    jQuery(document).ready(function($){ 
+
+        $("#' . $this->id . $salt . '")
+            .chosen( {no_results_text: "Ничего не найдено!"} )
+            .change(function(e){
+                var $this = $(this);
+
+                if( ! $("#billing_city").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"billing_city\" id=\"billing_city\" />");
+
+                if( ! $("#billing_postcode").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"billing_postcode\" id=\"billing_postcode\" />");
+
+                if( ! $("#billing_country").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"billing_country\" id=\"billing_country\" />");
+
+                $("#billing_city").val( $this.find("option[value=\"" + $this.val() + "\"]").html() );
+                $("#billing_postcode").val( $this.val() );
+                $("#billing_country").val( "RU" );
+
+                var $shipping_method_variant = $( "input[name=\'shipping_method_variant\']:first" );
+                $shipping_method_variant.val( $this.val() );
+                $shipping_method_variant.trigger( "change" );
+            });
+
+        $(".shipping_method_sub_variant.' . $this->id . '").change(function(e){
+                var $this = $("#' . $this->id . $salt . '");
+
+                if( ! $("#billing_city").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"billing_city\" id=\"billing_city\" />");
+
+                if( ! $("#billing_postcode").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"billing_postcode\" id=\"billing_postcode\" />");
+
+                if( ! $("#billing_country").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"billing_country\" id=\"billing_country\" />");
+
+                $("#billing_city").val( $this.find("option[value=\"" + $this.val() + "\"]").html() );
+                $("#billing_postcode").val( $this.val() );
+                $("#billing_country").val( "RU" );
+
+
+            var $shipping_method_sub_variant = $( "input[name=\'shipping_method_sub_variant\']:first" );
+            $shipping_method_sub_variant.val( $(".shipping_method_sub_variant.' . $this->id . ':checked").val() );
+            $shipping_method_sub_variant.trigger( "change" );
+        });
+    });
+</script>';
+		$rate['label_extra'] .= $script;
         $this->add_rate($rate);
 	}
 
@@ -636,12 +685,6 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
     }
 }
 
-function shoplogistics_shipping_method( $methods ) {
-	$methods[] = 'Carton_Shipping_Shoplogistics';
-	return $methods;
-}
-add_filter('woocommerce_shipping_methods', 'shoplogistics_shipping_method' );
-
 function shoplogistics_override_shipping_fields( $fields ) {
 	global $woocommerce;
 	if( 'shoplogistics_delivery' === $woocommerce->session->chosen_shipping_method )
@@ -652,17 +695,12 @@ function shoplogistics_override_shipping_fields( $fields ) {
 function shoplogistics_override_billing_fields( $fields ) {
 	global $woocommerce;
 	if( 'shoplogistics_delivery' === $woocommerce->session->chosen_shipping_method )
-		return shoplogistics_override_fields( $fields, 'billing' );
+        return shoplogistics_override_fields( $fields, 'billing' );
 	return $fields;
 }
 
 function shoplogistics_override_fields( $fields, $block_name = 'shipping' ) {
     global $woocommerce;
-
-    foreach( array('country', 'last_name', 'postcode', 'state', 'company', 'address_2', 'city' ) as $field ) {
-        //$fields[ $block_name . '_' . $field ]['required']   = false;
-        unset( $fields[ $block_name . '_' . $field ] );
-    }
 
     if( $woocommerce->session->shipping_type == 'pickup' )
         unset( $fields[ $block_name . '_address_1' ] );
@@ -671,3 +709,10 @@ function shoplogistics_override_fields( $fields, $block_name = 'shipping' ) {
 
 add_filter( 'woocommerce_billing_fields', 'shoplogistics_override_billing_fields', 10, 1 );
 add_filter( 'woocommerce_shipping_fields', 'shoplogistics_override_shipping_fields', 10, 1 );
+
+
+function shoplogistics_shipping_method( $methods ) {
+	$methods[] = 'Carton_Shipping_Shoplogistics';
+	return $methods;
+}
+add_filter('woocommerce_shipping_methods', 'shoplogistics_shipping_method' );

@@ -199,7 +199,7 @@ function ext_smtp_page(){
 		</th>
 		<td>
 			<label>
-				<input type="text" name="ext_smtp_subject" value="" size="43" style="width:272px;height:24px;" />
+				<input type="text" name="ext_smtp_subject" value="Handshake" size="43" style="width:272px;height:24px;" />
 			</label>
 		</td>
 	</tr>
@@ -209,7 +209,7 @@ function ext_smtp_page(){
 		</th>
 		<td>
 			<label>
-				<textarea type="text" name="ext_smtp_message" value="" cols="45" rows="3" style="width:284px;height:62px;"></textarea>
+				<textarea type="text" name="ext_smtp_message" value="" cols="45" rows="3" style="width:284px;height:62px;">Test Message</textarea>
 			</label>
 		</td>
 	</tr>

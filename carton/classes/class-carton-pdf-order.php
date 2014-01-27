@@ -9,41 +9,46 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
 
 	class Carton_PDF_Order {
 
-        private $order;
+        public static $plugin_prefix;
+
+        public $order;
         private $last_order_id;
         private $dom;
         private $fop;
         
-        private $xml;
+        public  $xml;
         private $xslt_one_page;
         private $xslt;
         
-        private $pdf;
+        public  $pdf;
         private $filename;
 
 		/**
 		 * Constructor
 		 */
-		public function __construct() {
-            if( $this->is_woocommerce_activated() ) {
-				add_action( 'init', array( $this, 'init' ) );
-			}
-		}
+	public function __construct() {
+        //self::$plugin_prefix = 'wcdn_';
+        self::$plugin_prefix = 'carton_pdf_order_';
+
+        if( $this->is_woocommerce_activated() )
+			add_action( 'init', array( $this, 'init' ) );
+        add_action( 'admin_init', array( $this, 'init' ) );
+	}
 		
-		/**
-		 * Init the class
-		 * @access public
-		 * @return void
-		 */
-		public function init() {
+	/**
+	 * Init the class
+	 * @access public
+	 * @return void
+	 */
+	public function init() {
             $lang = (WPLANG ? WPLANG : 'en_EN');
-            
+
             add_filter( 'woocommerce_email_attachments_new_order', array( $this, 'attach' ) );
             add_filter( 'woocommerce_email_remove_attachments_new_order', array( $this, 'remove' ) );
 
             $this->order = new WC_Order();
             $this->fop   = new Carton_FOP();
-			$this->dom   = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><document lang="' . $lang . '" />');
+            $this->dom   = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><document lang="' . $lang . '" />');
 
             $this->xslt_one_page = file_get_contents( CARTON_PDF_ORDER_TEMPLATES_DIR . 'invoice_' . $lang . '.xsl' );
             $this->xslt          = file_get_contents( CARTON_PDF_ORDER_TEMPLATES_DIR . 'invoice_alt_' .$lang . '.xsl' );
@@ -91,9 +96,9 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                     $this->dom->company->info->name = get_bloginfo( 'name' );
                     $this->dom->company->info->slogan = get_bloginfo( 'description' );
                     $this->dom->company->info->site = get_bloginfo( 'url' );
-                    $this->dom->company->info->address->p = new SimpleXMLElement( '<p>' . get_option('wcdn_company_address') . '</p>' );
-                    $this->dom->company->info->phone = new SimpleXMLElement( '<p>' . get_option('wcdn_company_phone') . '</p>' );
-                    $this->dom->company->info->email = new SimpleXMLElement( '<p>' . get_option('wcdn_company_email') . '</p>' );;
+                    $this->dom->company->info->address->p = new SimpleXMLElement( '<p>' . $this->get_setting('company_address') . '</p>' );
+                    $this->dom->company->info->phone = new SimpleXMLElement( '<p>' . $this->get_setting('company_phone') . '</p>' );
+                    $this->dom->company->info->email = new SimpleXMLElement( '<p>' . $this->get_setting('company_email') . '</p>' );;
 
                     $cname = array();
                     if( $this->order->billing_first_name )
@@ -118,14 +123,14 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                     $this->dom->recipient->address = $this->order->get_shipping_address();
 
                     $this->dom->notes->customer = $this->order->customer_note;
-                    $this->dom->notes->personal = new SimpleXMLElement( '<p>' . get_option('wcdn_personal_notes') . '</p>' );
-                    $this->dom->notes->conditions = new SimpleXMLElement( '<p>' . get_option('wcdn_policies_conditions') . '</p>' );
+                    $this->dom->notes->personal = new SimpleXMLElement( '<p>' . $this->get_setting('personal_notes') . '</p>' );
+                    $this->dom->notes->conditions = new SimpleXMLElement( '<p>' . $this->get_setting('policies_conditions') . '</p>' );
 
                     $this->dom->items = null;
                     $n = 0;
                     foreach( $this->order->get_items() as $item ) {
                         $product = $this->order->get_product_from_item( $item );
-                        $this->dom->items->item[$n]->name  = $item[ 'name' ];
+                        $this->dom->items->item[$n]->name  = $this->correct( $item[ 'name' ] );
                         $this->dom->items->item[$n]->sku   = $product->get_sku();
                         $this->dom->items->item[$n]->qty   = $item['qty'];
 
@@ -192,6 +197,18 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
 				return false;
 			}
 		}
+
+        /**
+         * Get the content for an option
+         */
+        public function get_setting( $name ) {
+            return get_option( self::$plugin_prefix . $name );
+        }
+
+        public function correct($string) {
+            $string = preg_replace ( '/(&#8221;|&#8220;)/', '"', $string );
+            return $string;
+        }
 
         public function test_data() {
             return '<?xml version="1.0" encoding="UTF-8"?>

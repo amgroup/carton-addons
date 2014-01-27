@@ -41,10 +41,6 @@ class WP_Image_Editor_Imagick_Extd extends WP_Image_Editor_Imagick {
         
         $p_size = $this->image->getImageGeometry();
         $n_size = $this->get_croped_dimmensions( array($p_size['width'],$p_size['height']), $b_size );
-
-		$f = fopen( '/tmp/size.txt', 'a+' );
-		fwrite($f, 'Size: ' . join("x", $size ) . ' B-Size: ' . join("x", $b_size ) . ' getImageGeometry: ' . join("x", array($p_size['width'],$p_size['height']) ) . ' get_croped_dimmensions: ' . join("x", $n_size ) . "\n" );
-		fclose($f);
         
         $left = ($size[0]-$n_size[0])/2;
         $top  = ($size[1]-$n_size[1]);
@@ -55,11 +51,12 @@ class WP_Image_Editor_Imagick_Extd extends WP_Image_Editor_Imagick {
         $this->image->sharpenImage( 4,2 );
 		$src = $this->image->clone();
 		
-		$this->image->cropImage(1,1, 0,0);
-		$this->image->scaleImage( $size[0], $size[1] );
+	$this->image->cropImage(1,1, 0,0);
+	$this->image->scaleImage( $size[0], $size[1] );
 		
         $gradient = new Imagick();
-        $gradient->newPseudoImage( $size[0], $size[1], "gradient:" . $src->getImagePixelColor(1, 1)->getColorAsString() . "-" . $src->getImagePixelColor($n_size[0]-1, $n_size[1]-1)->getColorAsString() );
+//        $gradient->newPseudoImage( $size[0], $size[1], "gradient:" . $src->getImagePixelColor(1, 1)->getColorAsString() . "-" . $src->getImagePixelColo	r($n_size[0]-1, $n_size[1]-1)->getColorAsString() );
+        $gradient->newPseudoImage( $size[0], $size[1], "gradient:white-white" );
         $this->image->compositeImage( $gradient, imagick::COMPOSITE_OVER, 0, 0 );
         $gradient->destroy();
 		$this->image->compositeImage( $src, imagick::COMPOSITE_OVER, $left, $top);

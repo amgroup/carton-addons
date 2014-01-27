@@ -30,12 +30,13 @@ function ext_smtp($phpmailer){
 	$phpmailer->FromName = $wsOptions["fromname"];
 	$phpmailer->Sender = $phpmailer->From; //Return-Path
 	$phpmailer->AddReplyTo( //Reply-To
-		$phpmailer->From,
-		$phpmailer->FromName);
+	$phpmailer->From,
+	$phpmailer->FromName);
 	$phpmailer->Host = $wsOptions["host"];
 	$phpmailer->SMTPSecure = $wsOptions["smtpsecure"];
 	$phpmailer->Port = $wsOptions["port"];
 	$phpmailer->SMTPAuth = ($wsOptions["smtpauth"]=="yes") ? TRUE : FALSE;
+
 	if($phpmailer->SMTPAuth){
 		$phpmailer->Username = $wsOptions["username"];
 		$phpmailer->Password = $wsOptions["password"];
