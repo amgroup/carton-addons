@@ -702,8 +702,9 @@ function shoplogistics_override_billing_fields( $fields ) {
 function shoplogistics_override_fields( $fields, $block_name = 'shipping' ) {
     global $woocommerce;
 
-    if( $woocommerce->session->shipping_type == 'pickup' )
+    if( $woocommerce->session->shipping_type == 'pickup' ) {
         unset( $fields[ $block_name . '_address_1' ] );
+    }
     return $fields;
 }
 
