@@ -11,7 +11,7 @@ function carton_add_rewrite_rules() {
     global $wp_rewrite;
 
     add_rewrite_rule('(ru)/([^/]+)/?$', 'index.php?name=$matches[2]&post_type=product&rewrite=$matches[1]', 'top' );
-    add_rewrite_rule('(shop)/(.*)/?$', 'index.php?name=$matches[2]&post_type=product&rewrite=$matches[1]', 'top' );
+    add_rewrite_rule('(shop)/([^/]+)/([^/]+)/?$', 'index.php?name=$matches[3]&product_cat=$matches[2]&post_type=product&rewrite=$matches[1]', 'top' );
 
     flush_rewrite_rules();
 }
@@ -26,7 +26,7 @@ add_filter( 'query_vars', 'carton_add_rewrite_query_vars' );
 function carton_parse_query( $wp_query ) {
     global $wpdb;
     if ( $wp_query->get( 'rewrite' ) ) {
-	$old_permalink = strtolower( $wp_query->get( 'rewrite' ) .'/' . $wp_query->query_vars['name'] );
+	$old_permalink = strtolower( $wp_query->query_vars['rewrite'] .'/'. ($wp_query->query_vars['product_cat']?$wp_query->query_vars['product_cat'] . '/' : '') . $wp_query->query_vars['name'] );
 	$q = $wpdb->prepare("SELECT object_id, rewrite_id FROM {$wpdb->prefix}woocommerce_rewrites WHERE uri=%s AND object_type=%s", $old_permalink, $wp_query->query_vars['post_type']);
 	$rewrite = $wpdb->get_row( $q );
 	if($rewrite){
