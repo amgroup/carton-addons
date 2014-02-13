@@ -204,7 +204,21 @@ xmlns:fox="http://xmlgraphics.apache.org/fop/extensions">
                 </fo:inline>
               </fo:block>
             </fo:block>
-            
+
+            <xsl:choose>
+                <xsl:when test="string-length(/document/info/payment/date) > 0">
+			
+					<fo:block-container border="0.7mm solid indigo" width="5cm">
+						<fo:block-container>
+							<fo:block-container border="0.25mm solid indigo" margin="0.5mm" color="indigo" text-align="center" padding="1mm 0mm" >
+								<fo:block color="red">ОПЛАЧЕНО - <xsl:value-of select="/document/info/payment/date" /></fo:block>
+								<fo:block><xsl:value-of select="/document/info/payment/label" /></fo:block>
+							</fo:block-container>
+						</fo:block-container>
+					</fo:block-container>
+                </xsl:when>
+            </xsl:choose>
+
             <!-- Разрыв страницы -->
 
             <fo:block break-before="page" text-align="center" font-size="14pt" margin-bottom="5mm">

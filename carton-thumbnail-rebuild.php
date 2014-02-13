@@ -57,8 +57,9 @@ function ajax_thumbnail_rebuild_ajax() {
 
 		if ($onlyfeatured) {
 			/* Get all featured images */
-			$featured_images = $wpdb->get_results( "SELECT meta_value,{$wpdb->posts}.post_title AS title FROM {$wpdb->postmeta}, {$wpdb->posts}
-		                                        WHERE meta_key = '_thumbnail_id' AND {$wpdb->postmeta}.post_id={$wpdb->posts}.ID");
+			$featured_images = $wpdb->get_results( "
+			    SELECT meta_value,{$wpdb->posts}.post_title AS title FROM {$wpdb->postmeta}, {$wpdb->posts}
+		            WHERE meta_key = '_thumbnail_id' AND {$wpdb->postmeta}.post_id={$wpdb->posts}.ID");
 
 			foreach($featured_images as $image) {
 			    $res[] = array('id' => $image->meta_value, 'title' => $image->title);

@@ -21,6 +21,23 @@ function append_shoplogistics_delivery_shipping_method() {
 	if ( !class_exists('WC_Shipping_Method') )
 		return; // if the parent class is not available, do nothing
 	include_once (PLUGIN_DIR_PATH_SHOPLOGISTICS_DELIVERY_CLASSES . 'class-carton-shipping-shoplogistics.php');
+
+
+	//if( is_product() || is_cart() || is_checkout() ) { TODO
+		wp_register_script( 'bootstrap-js', plugin_dir_url(__FILE__) . 'js/bootstrap/bootstrap.min.js', array( 'jquery' ) );
+		wp_register_script( 'shoplogistics-delivery-ymap-js', plugin_dir_url(__FILE__) . 'js/shoplogistics-delivery/shoplogistics-delivery-ymap.js', array( 'jquery', 'bootstrap-js' ) );
+		wp_register_script( 'api-maps-yandex', 'http://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU', array( 'jquery', 'bootstrap-js' ) );
+
+		wp_enqueue_style( 'bootstrap-buttons-css', plugin_dir_url(__FILE__) . 'css/bootstrap/bootstrap.buttons.css' );
+		wp_enqueue_style( 'bootstrap-modal-css', plugin_dir_url(__FILE__) . 'css/bootstrap/bootstrap.modal.css' );
+		wp_enqueue_style( 'bootstrap-glyphicon-css', plugin_dir_url(__FILE__) . 'css/bootstrap/bootstrap.glyphicon.css' );
+		wp_enqueue_style( 'shoplogistics-delivery-ymap-css', plugin_dir_url(__FILE__) . 'css/shoplogistics-delivery/shoplogistics-delivery-ymap.css' );
+
+		wp_enqueue_script( 'bootstrap-js' );
+		wp_enqueue_script( 'shoplogistics-delivery-ymap-js' );
+		wp_enqueue_script( 'api-maps-yandex' );
+	//}
 }
+
 add_action( 'plugins_loaded', 'append_shoplogistics_delivery_shipping_method' );
 ?>

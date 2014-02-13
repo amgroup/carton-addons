@@ -104,6 +104,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
      * @return string
      */
     function api_get ( $request ) {
+
         if( empty( $this->curl ) )
             init_cutrl();
 
@@ -154,6 +155,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
         $request->api_id = $this->api_key;
         $request->function = 'get_dictionary';
         $request->dictionary_type = 'pickup';
+
 
         $_pickup = new SimpleXMLElement( $this->api_get( $request->asXML() ) );
         
@@ -231,18 +233,23 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
         if( $woocommerce->session->chosen_shipping_method_variant ) {
             if( is_array($selected_city) ) {
 		if( ! $woocommerce->cart->cart_contents_weight )
-			$woocommerce->cart->cart_contents_weight = 0.5;
+		    $woocommerce->cart->cart_contents_weight = 0.5;
+
                 $subvariants = (array) $this->get_rates( $selected_city[ 'name' ], $package['contents_cost'], $woocommerce->cart->cart_contents_weight );
                 if( ! empty( $subvariants ) ) {
 
                     $pickup_place = array();
                     $only_one_variant = 1;
+		    $courier          = 1;
 
                     foreach( $subvariants['resuts'] as $_subvariants ) {
                         $subvariant = (array) $_subvariants;
 
                         if ( $subvariant['is_terminal'] )
                             continue;
+
+			if ( $subvariant['weight_to'] < $woocommerce->cart->cart_contents_weight )
+			    continue;
 
                         // Delivery Time
                         preg_match('/(?P<from>[0-9]+)[^0-9]?(?P<to>[0-9]+)?/', $subvariant['srok_dostavki'], $days );
@@ -251,7 +258,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                                 $days['from'] += $this->delivery_correction;
                                 $days['to']   += $this->delivery_correction;
                             }
-                            $delivery = 'от ' . $days['from'] .' до ' . $days['to'] . ' ' . _n( 'business day', 'business days', $days['to'], 'woocommerce');
+                            $delivery = 'от ' . $days['from'] . ' ' . sprintf( _n( 'up to %s business day', 'up to %s business days', $days['to'], 'woocommerce'), $days['to'] );
                         } else {
                             if( $this->delivery_correction > 0 ) {
                                 $days['from'] += $this->delivery_correction;
@@ -267,6 +274,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                         // Devlivery cost
                         if( ! $subvariant['comission_percent'] )
                             $subvariant['comission_percent'] = 2;
+
                         $price = (($subvariant['comission_percent']/100) * $package['contents_cost']) + $subvariant['price'];
                         
                         // Delivery cost correction
@@ -303,26 +311,17 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                             $discounted_price = 100;
 
 
-                        // Adress correction
-                        $type = ($subvariant['pickup_places_type_id'] ? 'pickup' : 'courier');
+                        $checked       = '';
+			$shipping_type = 'pickup';
 
                         if( ! $subvariant['pickup_places_type_id'] ) {
-                            $subvariant['street_address'] = '';
-							$subvariant['type_ru'] = 'Курьером до дома';
-                            $subvariant['address'] = '<span class="type ' . $type . '">' . $subvariant['type_ru'] . '</span>';
-                            $subvariant['pickup_place_code'] = '000000';
-                        } else {
-                            $subvariant['address'] = preg_replace('(\(.*$)', '', $subvariant['address'] );
-                            $subvariant['street_address'] = mb_initcap( $subvariant['address'] );
-							$subvariant['type_ru'] = 'Пункт вывоза заказа';
-                            $subvariant['address'] = '<span class="type ' . $type . '">' . $subvariant['type_ru'] . '</span> - ' . $subvariant['street_address'];
+                            $subvariant['pickup_place_code'] = $woocommerce->session->chosen_shipping_method_variant . '_courier_' . $courier++;
+			    $shipping_type = 'courier';
                         }
-                        
-                        $checked = '';
+
                         if( $only_one_variant || $subvariant['pickup_place_code'] == $woocommerce->session->chosen_shipping_method_sub_variant ) {
                             $checked = ' checked="checked"';
-
-                            $woocommerce->session->shipping_type = $type;
+                            $woocommerce->session->chosen_shipping_type = $shipping_type;
 
                             $label = array();
                             if( isset( $subvariant['type_ru'] ) )
@@ -366,8 +365,22 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                             );
                         }
 
+
+                        // Address correction
+                        if( $shipping_type == 'courier' ) {
+                            $subvariant['street_address'] = '';
+                            $subvariant['type_ru'] = 'Курьером до дома';
+                            $subvariant['address'] = '<span class="type ' . $shipping_type . '">' . $subvariant['type_ru'] . '</span>';
+                        } else {
+                            $worktime = $subvariant['worktime'] ? ' data-worktime="' . esc_attr( $subvariant['worktime'] ) . '"' : '';
+                            $subvariant['address'] = preg_replace('(\(.*$)', '', $subvariant['address'] );
+                            $subvariant['street_address'] = mb_initcap( $subvariant['address'] );
+                            $subvariant['type_ru'] = 'Пункт самовывоза';
+                            $subvariant['address'] = '<span class="type ' . $shipping_type . '">' . $subvariant['type_ru'] . '</span> - <span class="street_address"' . $worktime .'>' . $subvariant['street_address'] . '</span>';
+                        }
+
                         $pickup_place[] = '<li class="subvariant">' .
-                            '<label class="option"><input class="shipping_method_sub_variant ' . $this->id . ' ' . $type . '" type="radio" name="shipping_method_sub_variant' . $salt . '" ' .
+                            '<label class="option"><input class="shipping_method_sub_variant ' . $this->id . ' ' . $shipping_type . '" type="radio" name="shipping_method_sub_variant' . $salt . '" ' .
                                 'value="' . $subvariant['pickup_place_code'] . '"' . $checked . '>' .
                                 (($discounted_price >0) ? woocommerce_price( $discounted_price ) : 'Бесплатно!') .
                                 '<span class="delivery"> (' . $delivery . ')</span> - '.
@@ -379,9 +392,33 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 
                     if( sizeof($pickup_place) ) {
                         $rate[ 'multicost' ] = 8;
+                        $rate[ 'label_extra' ] .= '<button class="btn btn-info btn-xs" data-toggle="modal" data-target="#showMap"><i class="glyphicon glyphicon-map-marker"></i> Выбрать на карте </button>';
                         $rate[ 'label_extra' ] .= "<br/><ol>" . implode('', $pickup_place ) . "</ol>\n";
+                        $rate[ 'label_extra' ] .= '
+                        <div class="modal" id="showMap" tabindex="-1" role="dialog" aria-labelledby="showMapModalLabel" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="showMapModalLabel">Варианты доставки</h4>
+                              </div>
+                              <div class="modal-body">
+                                <div id="map"></div>
+                              </div>
+                              <div class="modal-afterbody">
+                              </div>
+                              <div class="modal-footer">
+                                <div class="hint chosen pull-left">
+                                    <span class="type"></span> <span class="street_address"></span>
+                                    <div><em><strong><small class="deliverytime"></small></em></strong></div>
+                                    <h5 class="price"></h5>
+                                </div>
+                                <button type="button" class="btn btn-success pull-right" id="confirm" data-dismiss="modal">Подтвердить</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>';
                     }
-
 
                 } else {
                     $errors[] = '';
@@ -440,6 +477,12 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
             $shipping_method_sub_variant.val( $(".shipping_method_sub_variant.' . $this->id . ':checked").val() );
             $shipping_method_sub_variant.trigger( "change" );
         });
+
+        var $dialog = $("#showMap");
+
+        $("body").append($dialog);
+        $dialog.live("shown.bs.modal", function () { $("button#confirm").hide(); yMapDestroy(); yMapCreate(); });
+        $dialog.live("hidden.bs.modal", function () { yMapDestroy(); });
     });
 </script>';
 		$rate['label_extra'] .= $script;
@@ -702,7 +745,7 @@ function shoplogistics_override_billing_fields( $fields ) {
 function shoplogistics_override_fields( $fields, $block_name = 'shipping' ) {
     global $woocommerce;
 
-    if( $woocommerce->session->shipping_type == 'pickup' ) {
+    if( $woocommerce->session->chosen_shipping_type == 'pickup' ) {
         unset( $fields[ $block_name . '_address_1' ] );
     }
     return $fields;

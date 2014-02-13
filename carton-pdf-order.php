@@ -323,6 +323,17 @@ if( !function_exists( 'html2xml_charachters' ) ) {
 	}
 }
 
+if( !function_exists( 'carton_plain_price' ) ) {
+	function carton_plain_price( $price ) {
+		$string = woocommerce_price( $price );
+		$string = preg_replace ( '/(&#1088;&#1091;&#1073;)/i', 'руб', $string );
+		$string = preg_replace ( '/(&#160;|&nbsp;)/i', ' ', $string );
+
+		$string = strip_tags( $string );
+		return $string;
+	}
+}
+
 /** Prettifies an XML string into a human-readable and indented work of art 
  *  @param string $xml The XML as a string 
  *  @param boolean $html_output True if the output should be escaped (for use in HTML) 

@@ -46,6 +46,9 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
             add_filter( 'woocommerce_email_attachments_new_order', array( $this, 'attach' ) );
             add_filter( 'woocommerce_email_remove_attachments_new_order', array( $this, 'remove' ) );
 
+            add_filter( 'woocommerce_email_attachments_invoice_paid', array( $this, 'attach' ) );
+            add_filter( 'woocommerce_email_remove_attachments_invoice_paid', array( $this, 'remove' ) );
+
             $this->order = new WC_Order();
             $this->fop   = new Carton_FOP();
             $this->dom   = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><document lang="' . $lang . '" />');
@@ -83,14 +86,19 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                 $this->order->get_order( $order_id );
                 
                 if( $this->order ) {
+		    $paid =  get_post_meta( $order_id, '_paid_date', true );
+
                     $this->dom->info->number = $this->order->get_order_number();
                     $this->dom->info->date   = date_i18n( get_option( 'date_format' ), strtotime( $this->order->order_date ) );
                     $this->dom->info->status = '';
 
-                    $this->dom->info->payment->name  = __( $this->order->get_order()->payment_method_title, 'woocommerce' );
+                    $this->dom->info->payment->label = get_post_meta( $order_id, '_payment_method_title', true );
+		    $this->dom->info->payment->date  = $paid ? date_i18n( 'd.m.Y H:i:s', strtotime( $paid ) ) : '';
+
                     $this->dom->info->shipping->type = '';
                     $this->dom->info->shipping->label    = $this->order->order_custom_fields[ '_order_shipping_tracking_label'][0];
                     $this->dom->info->shipping->tracking = $this->order->order_custom_fields[ '_order_shipping_tracking' ][0];
+
 
                     $this->dom->company->info->logo = '';
                     $this->dom->company->info->name = get_bloginfo( 'name' );
@@ -134,8 +142,10 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                         $this->dom->items->item[$n]->sku   = $product->get_sku();
                         $this->dom->items->item[$n]->qty   = $item['qty'];
 
-                        $this->dom->items->item[$n]->price = new SimpleXMLElement( html2xml_charachters( woocommerce_price( $item['line_total'] ) ) );
-                        $this->dom->items->item[$n]->single_price = new SimpleXMLElement( html2xml_charachters( woocommerce_price( $item['line_subtotal'] ) ) );
+                        $this->dom->items->item[$n]->price = strip_tags( woocommerce_price( $item['line_total'] ) );
+
+                        $this->dom->items->item[$n]->price = carton_plain_price( $item['line_total'] );
+                        $this->dom->items->item[$n]->single_price = carton_plain_price( $item['line_subtotal'] );
                         
                         $this->dom->items->item[$n]->weight->value = $product->get_weight();
                         $this->dom->items->item[$n]->weight->unit  = __( get_option('woocommerce_weight_unit'), 'woocommerce' );
@@ -206,6 +216,7 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
         }
 
         public function correct($string) {
+            $string = preg_replace ( '/(&#038;)/', '&', $string );
             $string = preg_replace ( '/(&#8221;|&#8220;)/', '"', $string );
             return $string;
         }
