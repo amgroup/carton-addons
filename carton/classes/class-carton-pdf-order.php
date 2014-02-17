@@ -125,24 +125,24 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                     if( $this->order->shipping_last_name )
                         $rname[] = $this->order->shipping_last_name;
 
-                    $this->dom->recipient->name  = implode( ', ', $rname );
+                    $this->dom->recipient->name  = $this->to_node( implode( ', ', $rname ) );
                     $this->dom->recipient->email = ($this->order->shipping_email ? $this->order->shipping_email : $this->order->billing_email);
                     $this->dom->recipient->phone = ($this->order->shipping_phone ? $this->order->shipping_phone : $this->order->billing_phone);
                     $this->dom->recipient->address = $this->order->get_shipping_address();
 
-                    $this->dom->notes->customer = $this->order->customer_note;
-                    $this->dom->notes->personal = new SimpleXMLElement( '<p>' . $this->get_setting('personal_notes') . '</p>' );
-                    $this->dom->notes->conditions = new SimpleXMLElement( '<p>' . $this->get_setting('policies_conditions') . '</p>' );
+                    $this->dom->notes->customer = $this->to_node( $this->order->customer_note );
+                    $this->dom->notes->personal = $this->to_node( $this->get_setting('personal_notes') );
+                    $this->dom->notes->conditions = $this->to_node( $this->get_setting('policies_conditions') );
 
                     $this->dom->items = null;
                     $n = 0;
                     foreach( $this->order->get_items() as $item ) {
                         $product = $this->order->get_product_from_item( $item );
-                        $this->dom->items->item[$n]->name  = $this->correct( $item[ 'name' ] );
-                        $this->dom->items->item[$n]->sku   = $product->get_sku();
+                        $this->dom->items->item[$n]->name  = $this->to_node( $item[ 'name' ] );
+                        $this->dom->items->item[$n]->sku   = $this->to_node( $product->get_sku() );
                         $this->dom->items->item[$n]->qty   = $item['qty'];
 
-                        $this->dom->items->item[$n]->price = strip_tags( woocommerce_price( $item['line_total'] ) );
+                        $this->dom->items->item[$n]->price = $this->to_node( woocommerce_price( $item['line_total'] ) );
 
                         $this->dom->items->item[$n]->price = carton_plain_price( $item['line_total'] );
                         $this->dom->items->item[$n]->single_price = carton_plain_price( $item['line_subtotal'] );
@@ -162,7 +162,7 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                             $label = substr_replace( $label, '', $colon, 1 );
 
                         $this->dom->totals->total[$n]->name  = $label;
-                        $this->dom->totals->total[$n]->value = new SimpleXMLElement( '<value>' . html2xml_charachters(strip_tags($total['value']) ) . '</value>' );
+                        $this->dom->totals->total[$n]->value = $this->to_node( $total['value'] );
                         $n++;
                     }
                 }
@@ -170,6 +170,13 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
             }
             return xmlpp( $this->xml, true );
         }
+	
+	public function to_node( $string ) {
+	    $string = strip_tags( $string );
+	    if( strip_tags( $string ) )
+		return new SimpleXMLElement( '<node>' . html2xml_charachters( strip_tags( $string ) ) . '</node>' );
+	    return '';
+	}
         
         public function pdf( $order_id = 0 ) {
 
@@ -213,12 +220,6 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
          */
         public function get_setting( $name ) {
             return get_option( self::$plugin_prefix . $name );
-        }
-
-        public function correct($string) {
-            $string = preg_replace ( '/(&#038;)/', '&', $string );
-            $string = preg_replace ( '/(&#8221;|&#8220;)/', '"', $string );
-            return $string;
         }
 
         public function test_data() {

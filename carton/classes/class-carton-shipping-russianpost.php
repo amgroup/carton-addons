@@ -93,7 +93,7 @@ class Carton_Shipping_Russianpost extends WC_Shipping_Method {
                 $from = ($this->postcode == '') ? '101000' : $this->postcode;
                 $to   = $_POST['shipping_method_variant'];
 
-                $postage  = (array) json_decode ( $wpdb->get_var( $wpdb->prepare('SELECT fn.postcalc_json( %s, %s, %s, %s ) AS postcalc', $from, $to, 1000 * $woocommerce->cart->cart_contents_weight, $package['contents_cost'] ) ) );
+                $postage  = (array) json_decode ( $wpdb->get_var( $wpdb->prepare('SELECT utils.postcalc_json( %s, %s, %s, %s ) AS postcalc', $from, $to, 1000 * $woocommerce->cart->cart_contents_weight, $package['contents_cost'] ) ) );
 
                 if( 'OK' === $postage['Status'] ) {
                     $po = (array) $postage['Куда'];

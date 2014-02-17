@@ -74,6 +74,7 @@ function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from) {
 */
 if( !function_exists( 'html2xml_charachters' ) ) {
 	function html2xml_charachters ( $xml ) {
+
         $xml = preg_replace ( '/(&nbsp;)/i', '&#160;', $xml ); // неразрывный пробел
         $xml = preg_replace ( '/(&ensp;)/i', '&#8194;', $xml ); // узкий пробел (еn-шириной в букву n)
         $xml = preg_replace ( '/(&emsp;)/i', '&#8195;', $xml ); // широкий пробел (em-шириной в букву m)
@@ -328,7 +329,6 @@ if( !function_exists( 'carton_plain_price' ) ) {
 		$string = woocommerce_price( $price );
 		$string = preg_replace ( '/(&#1088;&#1091;&#1073;)/i', 'руб', $string );
 		$string = preg_replace ( '/(&#160;|&nbsp;)/i', ' ', $string );
-
 		$string = strip_tags( $string );
 		return $string;
 	}

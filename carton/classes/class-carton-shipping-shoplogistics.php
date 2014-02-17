@@ -319,9 +319,23 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 			    $shipping_type = 'courier';
                         }
 
+                        // Address correction
+                        if( $shipping_type == 'courier' ) {
+                            $subvariant['street_address'] = '';
+                            $subvariant['type_ru'] = 'Курьером до дома';
+                            $subvariant['address'] = '<span class="type ' . $shipping_type . '">' . $subvariant['type_ru'] . '</span>';
+                        } else {
+                            $worktime = $subvariant['worktime'] ? ' data-worktime="' . esc_attr( $subvariant['worktime'] ) . '"' : '';
+                            $subvariant['address'] = preg_replace('(\(.*$)', '', $subvariant['address'] );
+                            $subvariant['street_address'] = mb_initcap( $subvariant['address'] );
+                            $subvariant['type_ru'] = 'Пункт самовывоза';
+                            $subvariant['address'] = '<span class="type ' . $shipping_type . '">' . $subvariant['type_ru'] . '</span> - <span class="street_address"' . $worktime .'>' . $subvariant['street_address'] . '</span>';
+                        }
+
                         if( $only_one_variant || $subvariant['pickup_place_code'] == $woocommerce->session->chosen_shipping_method_sub_variant ) {
                             $checked = ' checked="checked"';
                             $woocommerce->session->chosen_shipping_type = $shipping_type;
+
 
                             $label = array();
                             if( isset( $subvariant['type_ru'] ) )
@@ -350,6 +364,8 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                             if( $subvariant['comments'] )
                                 $description[] = "Дополнительная информация: " . $subvariant['comments'];
 
+                            $woocommerce->session->shipping_method_instruction = $description;
+
                             $rate[ 'info' ]      = array(
                                 'instruction' => $description,
                                 'shoplogistics' => array( 
@@ -365,19 +381,6 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                             );
                         }
 
-
-                        // Address correction
-                        if( $shipping_type == 'courier' ) {
-                            $subvariant['street_address'] = '';
-                            $subvariant['type_ru'] = 'Курьером до дома';
-                            $subvariant['address'] = '<span class="type ' . $shipping_type . '">' . $subvariant['type_ru'] . '</span>';
-                        } else {
-                            $worktime = $subvariant['worktime'] ? ' data-worktime="' . esc_attr( $subvariant['worktime'] ) . '"' : '';
-                            $subvariant['address'] = preg_replace('(\(.*$)', '', $subvariant['address'] );
-                            $subvariant['street_address'] = mb_initcap( $subvariant['address'] );
-                            $subvariant['type_ru'] = 'Пункт самовывоза';
-                            $subvariant['address'] = '<span class="type ' . $shipping_type . '">' . $subvariant['type_ru'] . '</span> - <span class="street_address"' . $worktime .'>' . $subvariant['street_address'] . '</span>';
-                        }
 
                         $pickup_place[] = '<li class="subvariant">' .
                             '<label class="option"><input class="shipping_method_sub_variant ' . $this->id . ' ' . $shipping_type . '" type="radio" name="shipping_method_sub_variant' . $salt . '" ' .
@@ -441,26 +444,42 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                 if( ! $("#billing_city").size() )
                     $this.closest("form").append("<input type=\"hidden\" name=\"billing_city\" id=\"billing_city\" />");
 
+                if( ! $("#shipping_city").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"shipping_city\" id=\"shipping_city\" />");
+
                 if( ! $("#billing_postcode").size() )
                     $this.closest("form").append("<input type=\"hidden\" name=\"billing_postcode\" id=\"billing_postcode\" />");
 
                 if( ! $("#billing_country").size() )
                     $this.closest("form").append("<input type=\"hidden\" name=\"billing_country\" id=\"billing_country\" />");
 
+                if( ! $("#shipping_address_1").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"shipping_address_1\" id=\"shipping_address_1\" />");
+
                 $("#billing_city").val( $this.find("option[value=\"" + $this.val() + "\"]").html() );
+                $("#shipping_city").val( $this.find("option[value=\"" + $this.val() + "\"]").html() );
+
+
                 $("#billing_postcode").val( $this.val() );
                 $("#billing_country").val( "RU" );
 
                 var $shipping_method_variant = $( "input[name=\'shipping_method_variant\']:first" );
                 $shipping_method_variant.val( $this.val() );
+
+                var $address = $(".shipping_method_sub_variant.' . $this->id . ':checked").closest("label").find(".street_address");
+                $("#shipping_address_1").val( $address.text() );
+
                 $shipping_method_variant.trigger( "change" );
             });
 
-        $(".shipping_method_sub_variant.' . $this->id . '").change(function(e){
+            $(".shipping_method_sub_variant.' . $this->id . '").change(function(e){
                 var $this = $("#' . $this->id . $salt . '");
 
                 if( ! $("#billing_city").size() )
                     $this.closest("form").append("<input type=\"hidden\" name=\"billing_city\" id=\"billing_city\" />");
+
+                if( ! $("#shipping_city").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"shipping_city\" id=\"shipping_city\" />");
 
                 if( ! $("#billing_postcode").size() )
                     $this.closest("form").append("<input type=\"hidden\" name=\"billing_postcode\" id=\"billing_postcode\" />");
@@ -468,21 +487,29 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
                 if( ! $("#billing_country").size() )
                     $this.closest("form").append("<input type=\"hidden\" name=\"billing_country\" id=\"billing_country\" />");
 
+                if( ! $("#shipping_address_1").size() )
+                    $this.closest("form").append("<input type=\"hidden\" name=\"shipping_address_1\" id=\"shipping_address_1\" />");
+
                 $("#billing_city").val( $this.find("option[value=\"" + $this.val() + "\"]").html() );
+                $("#shipping_city").val( $this.find("option[value=\"" + $this.val() + "\"]").html() );
+
                 $("#billing_postcode").val( $this.val() );
                 $("#billing_country").val( "RU" );
 
+                var $shipping_method_sub_variant = $( "input[name=\'shipping_method_sub_variant\']:first" );
+                $shipping_method_sub_variant.val( $(".shipping_method_sub_variant.' . $this->id . ':checked").val() );
 
-            var $shipping_method_sub_variant = $( "input[name=\'shipping_method_sub_variant\']:first" );
-            $shipping_method_sub_variant.val( $(".shipping_method_sub_variant.' . $this->id . ':checked").val() );
-            $shipping_method_sub_variant.trigger( "change" );
-        });
+                var $address = $(".shipping_method_sub_variant.' . $this->id . ':checked").closest("label").find(".street_address");
+                $("#shipping_address_1").val( $address.text() );
+
+                $shipping_method_sub_variant.trigger( "change" );
+            });
 
         var $dialog = $("#showMap");
 
         $("body").append($dialog);
-        $dialog.live("shown.bs.modal", function () { $("button#confirm").hide(); yMapDestroy(); yMapCreate(); });
-        $dialog.live("hidden.bs.modal", function () { yMapDestroy(); });
+        $dialog.on("shown.bs.modal", function () { $("button#confirm").hide(); yMapDestroy(); yMapCreate(); });
+        $dialog.on("hidden.bs.modal", function () { yMapDestroy(); });
     });
 </script>';
 		$rate['label_extra'] .= $script;
