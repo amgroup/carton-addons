@@ -51,6 +51,9 @@ add_action( 'init', 'carton_get_rewrite_uri', 1 );
 function carton_set_rewrite_uri() {
     global $wpdb, $post;
 
+    // store only dry uri
+    if ( preg_match ( '/\?/', $_SERVER['REQUEST_URI'] ) ) return;
+
     $uri = strtolower( $_SERVER['REQUEST_URI'] );
     $object_id = null;
     $slug      = null;
