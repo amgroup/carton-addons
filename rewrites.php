@@ -10,11 +10,18 @@ Author URI: http://carton-ecommerce.com
 function carton_get_rewrite_uri() {
     global $wpdb;
 
+    $params = '';
+    $uri    = '/';
+
     // against incorrect urls like "/%25d1%2588%25d0%25ba..."
     if ( preg_match_all ( '/%25/', $_SERVER['REQUEST_URI'] ) > 4 )
-	$_SERVER['REQUEST_URI'] = urldecode( $_SERVER['REQUEST_URI'] );
+        $_SERVER['REQUEST_URI'] = urldecode( $_SERVER['REQUEST_URI'] );
 
-    $uri = strtolower( $_SERVER['REQUEST_URI'] );
+    if ( preg_match ( '/\?/', $_SERVER['REQUEST_URI'] ) ) {
+        list($uri, $params) = split('\?', $_SERVER['REQUEST_URI'] );
+    } else {
+        $uri = strtolower( $_SERVER['REQUEST_URI'] );
+    }
 
     $rewrite = $wpdb->get_row( $wpdb->prepare("
 		SELECT
@@ -43,6 +50,8 @@ function carton_get_rewrite_uri() {
 			RETURNING rewrite_id",
 			$rewrite->rewrite_id
 		));
+		if( $params )
+		    $_SERVER['REQUEST_URI'] .= '?' . $params;
     }
 }
 add_action( 'init', 'carton_get_rewrite_uri', 1 );
