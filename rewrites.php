@@ -20,38 +20,30 @@ function carton_get_rewrite_uri() {
     if ( preg_match ( '/\?/', $_SERVER['REQUEST_URI'] ) ) {
         list($uri, $params) = split('\?', $_SERVER['REQUEST_URI'] );
     } else {
-        $uri = strtolower( $_SERVER['REQUEST_URI'] );
+        $uri = $_SERVER['REQUEST_URI'];
     }
 
-    $rewrite = $wpdb->get_row( $wpdb->prepare("
-		SELECT
-			r.uri,
-			r.rewrite_id
-		FROM
-			{$wpdb->prefix}woocommerce_rewrites i,
-			{$wpdb->prefix}woocommerce_rewrites r
-		WHERE
-			i.uri = %s AND 
-			r.object_id = i.object_id AND
-			r.slug = i.slug
-		ORDER BY r.created DESC
-		LIMIT 1;",
-		$uri)
-    );
+    $rewrite_id = $wpdb->get_var( $wpdb->prepare("SELECT rewrite_id FROM {$wpdb->prefix}woocommerce_rewrites WHERE uri = %s", strtolower($uri) ) );
 
-    if( $rewrite ) {
-		$_SERVER['REQUEST_URI'] = $rewrite->uri;
-		$wpdb->get_var( $wpdb->prepare("
-			UPDATE
-			{$wpdb->prefix}woocommerce_rewrites
-			SET 
-			accessed = now()::timestamp
-			WHERE rewrite_id = %u
-			RETURNING rewrite_id",
-			$rewrite->rewrite_id
-		));
-		if( $params )
-		    $_SERVER['REQUEST_URI'] .= '?' . $params;
+    if( $rewrite_id ) {
+        $wpdb->get_var( $wpdb->prepare("UPDATE {$wpdb->prefix}woocommerce_rewrites SET accessed = now()::timestamp WHERE rewrite_id = %u", $rewrite_id));
+        $rewrite = $wpdb->get_var( $wpdb->prepare("
+            SELECT
+                r.uri
+            FROM {$wpdb->prefix}woocommerce_rewrites i, {$wpdb->prefix}woocommerce_rewrites r
+            WHERE i.rewrite_id = %u AND r.object_id = i.object_id AND r.slug = i.slug
+            ORDER BY r.created DESC
+            LIMIT 1;",
+            $rewrite_id)
+        );
+
+        if( $rewrite ) {
+            if( $params ) {
+                $_SERVER['REQUEST_URI'] = $rewrite . '?' . $params;
+            } else {
+                $_SERVER['REQUEST_URI'] = $rewrite;
+            }
+        }
     }
 }
 add_action( 'init', 'carton_get_rewrite_uri', 1 );
