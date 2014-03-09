@@ -7,11 +7,42 @@ Author: Andrei Guriev
 Author URI: http://carton-ecommerce.com
 */
 
+function carton_log_rewrite() {
+    global $wpdb;
+
+    $uri = $_SERVER["HTTP_REFERER"];
+    $uri = preg_replace( '/https?\:\/\//i', '', $uri );
+    $uri = strtolower( str_replace( $_SERVER["SERVER_NAME"], '', $uri ) );
+
+    $ip      = $_SERVER["HTTP_X_FORWARDED_FOR"] ? $_SERVER["HTTP_X_FORWARDED_FOR"] : ["HTTP_X_REAL_IP"];
+    $agent   = $_SERVER["HTTP_USER_AGENT"];
+
+    if ( preg_match ( '/\?/', $uri ) )
+        list($uri, $params) = split('\?', $uri );
+
+    $rewrite_id = $wpdb->get_var( $wpdb->prepare("SELECT rewrite_id FROM {$wpdb->prefix}woocommerce_rewrites WHERE uri = %s", $uri ) );
+    if( $rewrite_id ) {
+        $rewrite_id = $wpdb->get_results( $wpdb->prepare(
+            "INSERT INTO {$wpdb->prefix}woocommerce_rewrites_log (rewrite_id,ip,agent,server,uri,referer) VALUES ( %u,%s,%s,%s,%s,%s )",
+            $rewrite_id,$ip,$agent,$_SERVER["SERVER_NAME"],$uri,$_POST["referrer"]
+        ));
+    }
+}
+add_action( 'wp_ajax_nopriv_analytics_counter', 'carton_log_rewrite' );
+add_action( 'wp_ajax_analytics_counter', 'carton_log_rewrite' );
+
+
+function carton_log_rewrite_js_code() {
+    echo '<script type="text/javascript">jQuery.ajax({ url: "/wp-admin/admin-ajax.php", type: "POST", data: {referrer:document.referrer,action:"analytics_counter"}} );</script>';
+}
+add_action('wp_footer', 'carton_log_rewrite_js_code');
+
 function carton_get_rewrite_uri() {
     global $wpdb;
 
     $params = '';
     $uri    = '/';
+
 
     // against incorrect urls like "/%25d1%2588%25d0%25ba..."
     if ( preg_match_all ( '/%25/', $_SERVER['REQUEST_URI'] ) > 4 )
