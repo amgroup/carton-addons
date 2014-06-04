@@ -104,6 +104,9 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
      * @return string
      */
     function api_get ( $request ) {
+        $file = '/tmp/' . date('Y-W-') . md5( $request ) . '.cache';
+        if( file_exists($file) )
+            return file_get_contents( $file );
 
         if( empty( $this->curl ) )
             init_cutrl();
@@ -112,8 +115,10 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
         $response = curl_exec( $this->curl );
         //curl_close( $this->curl );
 
-        if( $response )
+        if( $response ) {
+            file_put_contents( $file, $response );
             return $response;
+        }
     }
 
     function get_cities() {
@@ -127,7 +132,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
         $_cities = new SimpleXMLElement( $this->api_get( $request->asXML() ) );
 
         $this->cities = array();
-        
+
         foreach( $_cities->cities->city as $key => $value )
             $cities[ (string) $value->name ] = (string) $value->code_id ;
         return $cities;
@@ -147,7 +152,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
         }
         return $pickup_pindex;
     }
-    
+
     function get_pickup_cities() {
         $pickup_cities = array();
 
@@ -179,7 +184,7 @@ class Carton_Shipping_Shoplogistics extends WC_Shipping_Method {
 		$shipping_total_real = 0;
 		$selected_city       = null;
 		$errors              = array();
-        $salt                = '_' . rand(100000,999999);
+		$salt                = '_' . rand(100000,999999);
 
 		$rate = array(
 			'id'          => $this->id,

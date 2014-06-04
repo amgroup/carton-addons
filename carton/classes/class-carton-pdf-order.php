@@ -27,7 +27,6 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
 		 * Constructor
 		 */
 	public function __construct() {
-        //self::$plugin_prefix = 'wcdn_';
         self::$plugin_prefix = 'carton_pdf_order_';
 
         if( $this->is_woocommerce_activated() )
@@ -145,6 +144,7 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
                         $this->dom->items->item[$n]->price = $this->to_node( woocommerce_price( $item['line_total'] ) );
 
                         $this->dom->items->item[$n]->price = carton_plain_price( $item['line_total'] );
+			$this->dom->items->item[$n]->item_price = carton_plain_price( $item['line_subtotal'] / $item['qty'] );
                         $this->dom->items->item[$n]->single_price = carton_plain_price( $item['line_subtotal'] );
                         
                         $this->dom->items->item[$n]->weight->value = $product->get_weight();
@@ -181,7 +181,7 @@ if ( !class_exists( 'Carton_PDF_Order' ) ) {
         public function pdf( $order_id = 0 ) {
 
             $this->xml( $order_id );
-        
+error_log( $this->xml );
             $this->fop->get( $this->xslt_one_page, $this->xml );
             if( $this->fop->document->pages > 1 ) {
                 $this->fop->get( $this->xslt, $this->xml );

@@ -368,7 +368,7 @@ xmlns:fox="http://xmlgraphics.apache.org/fop/extensions">
                         <xsl:if test="$item/single_price/text() != $item/price/text()">
                             <fo:block text-decoration="line-through" font-size="7pt" color="grey"><xsl:value-of select="$item/single_price" /></fo:block>
                         </xsl:if>
-                        <fo:block><xsl:value-of select="$item/price" /></fo:block>
+                        <fo:block><xsl:value-of select="$item/item_price" /></fo:block>
                       </fo:table-cell>
                       <fo:table-cell border="0.2mm solid black" text-align="right" padding-right="2mm"><fo:block></fo:block></fo:table-cell>
     </fo:table-row>

@@ -135,7 +135,8 @@ function carton_make_sitemap() {
 function carton_sitemap_new_url( $object_id, $slug, $uri ) {
 	global $wpdb;
 	$lastmod = $wpdb->get_var($wpdb->prepare("
-		SELECT to_char(accessed, 'YYYY-MM-DD HH24:MI:SS+03:00') FROM (
+		SELECT to_char(accessed,'yyyy-mm-ddThh24:mi:ss.SSSS') || to_char(EXTRACT(timezone_hour FROM accessed),'s09') || ':' || to_char(EXTRACT(timezone_min FROM accessed),'FM09')
+		FROM (
 			SELECT accessed, 0::integer AS rate FROM {$wpdb->prefix}woocommerce_rewrites WHERE object_id=%u AND slug=%s AND uri=%s
 			UNION
 			SELECT now() AS accessed, 1::integer AS rate
